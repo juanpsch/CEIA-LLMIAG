@@ -1,30 +1,41 @@
 import streamlit as st
-# from PyPDF2 import PdfReader
-# from langchain.text_splitter import CharacterTextSplitter
+
+
 from langchain_ollama import OllamaEmbeddings
-# from langchain.embeddings import HuggingFaceInstructEmbeddings
-# from langchain.vectorstores import FAISS
 from dotenv import load_dotenv
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
-# from langchain_ollama.chat_models import ChatOllama
-from htmlTemplates import css, bot_template, user_template
-# from langchain.prompts import PromptTemplate
-# from operator import itemgetter
-# from langchain_core.output_parsers import StrOutputParser
 
-# from chromadb.config import Settings
+from htmlTemplates import css, bot_template, user_template
 
 from langchain_pinecone import PineconeVectorStore
 from langchain_groq import ChatGroq
+import re
+
+def decision(prompt):
+
+    indice = None
+    persona = None
+
+    jpmatch = re.compile('^.*?(?:Juan|Pablo|Schamun).*$', re.IGNORECASE)
+    nicomatch = re.compile('^.*?(?:Nicolas|Cacheda).*$', re.IGNORECASE)
+
+    if jpmatch.match(prompt):
+        indice = 'jptest'
+        persona = 'Juan Pablo'
+        
+    elif nicomatch.match(prompt):
+        indice = 'nico'
+        persona = 'Nicolas'
+
+    return indice, persona
 
 
 
 
-def get_vectorstore():
+def get_vectorstore(index_name='jptest'):
     embd = OllamaEmbeddings(model="nomic-embed-text")
     
-    index_name = 'jptest'
     namespace = "espacio"
 
     vectorstore = PineconeVectorStore(index_name=index_name,embedding=embd,
@@ -67,7 +78,7 @@ def handle_userinput(user_question):
 def main():
 
     load_dotenv()
-    st.set_page_config(page_title="Chat with Juan Pablo's CV", page_icon=":books:")
+    st.set_page_config(page_title="Chat with Juan Pablo's or Nicolás CV", page_icon=":books:")
     
     st.write(css, unsafe_allow_html=True)
 
@@ -77,18 +88,31 @@ def main():
         st.session_state.chat_history = None
 
 
-    st.header("Chat Juan Pablo's CV :books:")
-    user_question = st.text_input("Ask a question about Juan Pablo:")
-    if user_question:
-        handle_userinput(user_question)
 
+    st.header(f"Chat with Juan Pablo's or Nicolas's CVs PDFs :books:")
 
-    vectorstore = get_vectorstore()
-
-    # create the conversation chain
-    st.session_state.conversation = get_conversation_chain(vectorstore)               
-                
+    # option = st.selectbox(
+    #     "Who do you want to know from?",
+    #     ("Juan Pablo", "Nicolas"),
+    # )
     
+    option = st.text_input(f"Who do you want to know from?")
+    indice, persona = decision(option)
+    
+    if indice:
+        user_question = st.text_input(f"Ask a question about {persona}:")   
+        if user_question:
+            # indice = decision(user_question)            
+            handle_userinput(user_question)
+
+        vectorstore = get_vectorstore(index_name=indice)
+
+
+        # create the conversation chain
+        st.session_state.conversation = get_conversation_chain(vectorstore)               
+                
+    else:
+        st.warning('I can not recognize that person! Try again, please.', icon="⚠️")
 
 if __name__ == '__main__':
      main()

@@ -1,19 +1,19 @@
 import streamlit as st
-# from PyPDF2 import PdfReader
-# from langchain.text_splitter import CharacterTextSplitter
+from PyPDF2 import PdfReader
+from langchain.text_splitter import CharacterTextSplitter
 from langchain_ollama import OllamaEmbeddings
-# from langchain.embeddings import HuggingFaceInstructEmbeddings
-# from langchain.vectorstores import FAISS
+from langchain.embeddings import HuggingFaceInstructEmbeddings
+from langchain.vectorstores import FAISS
 from dotenv import load_dotenv
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
-# from langchain_ollama.chat_models import ChatOllama
+from langchain_ollama.chat_models import ChatOllama
 from htmlTemplates import css, bot_template, user_template
-# from langchain.prompts import PromptTemplate
-# from operator import itemgetter
-# from langchain_core.output_parsers import StrOutputParser
+from langchain.prompts import PromptTemplate
+from operator import itemgetter
+from langchain_core.output_parsers import StrOutputParser
 
-# from chromadb.config import Settings
+from chromadb.config import Settings
 
 from langchain_pinecone import PineconeVectorStore
 from langchain_groq import ChatGroq
@@ -77,7 +77,7 @@ def main():
         st.session_state.chat_history = None
 
 
-    st.header("Chat Juan Pablo's CV :books:")
+    st.header("Chat with multiple PDFs :books:")
     user_question = st.text_input("Ask a question about Juan Pablo:")
     if user_question:
         handle_userinput(user_question)
